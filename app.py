@@ -45,32 +45,17 @@ def assign_groups(means, grouping_dict):
 # This is a placeholder – real parsing may depend on known format structure
 
 def parse_rtf_content(content):
-    # Strip header before the first real line of text
-    start = content.find('\\fs20')
-    if start != -1:
-        content = content[start:]
-
-    # Clean out RTF formatting
-    content = re.sub(r'[{}]', '', content)
-    content = re.sub(r'\\[a-z]+[0-9]*', '', content)
-    content = content.replace('\\', '')
-
     lines = content.splitlines()
     data = []
-
     for line in lines:
-        parts = re.split(r'[\t\s]+', line.strip())
-        if len(parts) >= 3:
-            try:
+        if re.match(r"^\s*\w+\s+\d+\.\d+\s+[A-Z]+", line):
+            parts = line.strip().split()
+            if len(parts) >= 3:
                 treatment = parts[0]
                 mean = float(parts[1])
                 group = parts[2]
                 data.append({"Treatment": treatment, "Mean": mean, "Group": group})
-            except ValueError:
-                continue
-
-    return pd.DataFrame(data), lines
-
+    return pd.DataFrame(data)
 
 # App interface
 from io import BytesIO
@@ -168,8 +153,8 @@ def main():
             if df.empty:
                 st.error("No readable data found in the RTF file.")
                 st.subheader("Raw RTF Preview (first 30 lines):")
-                st.text("\n".join(rtf_text.splitlines()[:30]))
-
+                st.text("
+".join(rtf_text.splitlines()[:30]))
             else:
                 st.success("RTF data parsed!")
                 st.dataframe(df)
