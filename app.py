@@ -153,7 +153,7 @@ def main():
             if df.empty:
                 st.error("No readable data found in the RTF file.")
                 st.subheader("Raw RTF Preview (first 30 lines):")
-             st.text("
+                st.text("
 ".join(rtf_text.splitlines()[:30]))
             else:
                 st.success("RTF data parsed!")
