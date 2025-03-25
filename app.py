@@ -40,11 +40,13 @@ def assign_groups(means, grouping_dict):
     return groups
 
 def parse_rtf_content(content):
+    # Clean up RTF control characters
     content = re.sub(r'[{}]', '', content)
-    content = re.sub(r'\\tab', '\t', content)
-    content = re.sub(r'\\par', '\n', content)
-    content = re.sub(r'\\[a-z]+[0-9]*', '', content)
-    content = content.replace('\', '')
+    content = re.sub(r'\\\\tab', '\t', content)
+    content = re.sub(r'\\\\par', '\n', content)
+    content = re.sub(r'\\\\[a-z]+[0-9]*', '', content)
+    content = content.replace('\\\\', '')
+
     lines = content.splitlines()
     data = []
     for line in lines:
@@ -57,7 +59,7 @@ def parse_rtf_content(content):
                 data.append({"Treatment": treatment, "Mean": mean, "Group": group})
             except ValueError:
                 continue
-    return pd.DataFrame(data), lines
+    return pd.DataFrame(data)
 
 def to_excel(df):
     output = BytesIO()
