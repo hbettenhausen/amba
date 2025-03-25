@@ -40,13 +40,11 @@ def assign_groups(means, grouping_dict):
     return groups
 
 def parse_rtf_content(content):
-    # Clean up RTF control characters
     content = re.sub(r'[{}]', '', content)
-    content = re.sub(r'\\\\tab', '\t', content)
-    content = re.sub(r'\\\\par', '\n', content)
-    content = re.sub(r'\\\\[a-z]+[0-9]*', '', content)
-    content = content.replace('\\\\', '')
-
+    content = re.sub(r'\\tab', '\t', content)
+    content = re.sub(r'\\par', '\n', content)
+    content = re.sub(r'\\[a-z]+[0-9]*', '', content)
+    content = content.replace('\\', '')
     lines = content.splitlines()
     data = []
     for line in lines:
@@ -59,7 +57,7 @@ def parse_rtf_content(content):
                 data.append({"Treatment": treatment, "Mean": mean, "Group": group})
             except ValueError:
                 continue
-    return pd.DataFrame(data)
+    return pd.DataFrame(data), lines
 
 def to_excel(df):
     output = BytesIO()
@@ -82,15 +80,24 @@ def main():
                 st.error("No readable data found in the RTF file.")
                 st.subheader("Raw RTF Preview (first 30 lines):")
                 st.text("\n".join(lines[:30]))
-            else:
-                st.success("RTF data parsed!")
-                st.dataframe(df)
-                st.download_button(
-                    label="📥 Download Parsed Table (Excel)",
-                    data=to_excel(df),
-                    file_name="QEP_RTF_Parsed.xlsx",
-                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                )
+           elif filetype == ".rtf":
+    rtf_bytes = uploaded_file.read()
+    rtf_text = rtf_bytes.decode(errors="ignore")
+    df, lines = parse_rtf_content(rtf_text)
+    if df.empty:
+        st.error("No readable data found in the RTF file.")
+        st.subheader("Raw RTF Preview (first 30 lines):")
+        st.text("\n".join(lines[:30]))
+    else:
+        st.success("RTF data parsed!")
+        st.dataframe(df)
+        st.download_button(
+            label="📥 Download Parsed Table (Excel)",
+            data=to_excel(df),
+            file_name="QEP_RTF_Parsed.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+
 
 if __name__ == "__main__":
     main()
