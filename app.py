@@ -45,16 +45,25 @@ def assign_groups(means, grouping_dict):
 # This is a placeholder – real parsing may depend on known format structure
 
 def parse_rtf_content(content):
+    # Strip basic RTF formatting
+    content = re.sub(r'[{}]', '', content)
+    content = re.sub(r'\\tab', '\t', content)
+    content = re.sub(r'\\par', '\n', content)
+    content = re.sub(r'\\[a-z]+[0-9]*', '', content)
+    content = content.replace('\\', '')
+
     lines = content.splitlines()
     data = []
     for line in lines:
-        if re.match(r"^\s*\w+\s+\d+\.\d+\s+[A-Z]+", line):
-            parts = line.strip().split()
-            if len(parts) >= 3:
+        parts = re.split(r'[\t\s]+', line.strip())
+        if len(parts) >= 3:
+            try:
                 treatment = parts[0]
                 mean = float(parts[1])
                 group = parts[2]
                 data.append({"Treatment": treatment, "Mean": mean, "Group": group})
+            except ValueError:
+                continue
     return pd.DataFrame(data)
 
 # App interface
